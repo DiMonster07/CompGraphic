@@ -1,70 +1,99 @@
 #include "camera.h"
+#include <iostream>
+#include <fstream>
 
-Camera::Camera(float fovy, int width, int hight, float near_plane, float far_plane) :
+using namespace std;
+
+Camera::Camera(GLfloat fovy, GLint width, GLint hight, GLfloat near_plane, GLfloat far_plane) :
         fovy(fovy), width(width), hight(hight), near_plane(near_plane), far_plane(far_plane)
 {
-	normal_fovy = fovy;
-	perspective = true;
-}
+    this->yaw = 90.0f;
+    this->pitch = 0.0f;
+};
 
-void Camera::move(const glm::vec4 &vec)
+void Camera::setCamera(glm::vec3 position, glm::vec3 target, glm::vec3 up)
 {
-	pos = pos + vec;
-}
-
-void Camera::rotate(float angle, const glm::vec4 &vec)
-{
-
+    this->position = position;
+    this->target = target;
+    this->up = up;
 }
 
 void Camera::zoom(float value)
 {
 	fovy += value;
-	if (fovy <= 10)
-	{
-		fovy = 10;
-	}
-	else if (fovy >= 150)
-	{
-		fovy = 150;
-	}
+	if (fovy <= 10) { fovy = 10; }
+	else if (fovy >= 150) { fovy = 150; }
 }
 
-void Camera::look_at(const glm::vec4 &Position, const glm::vec4 &Target, const glm::vec4 &Up)
+void Camera::rotate()
 {
-    
+    if (this->pitch > 89.0f)
+        this->pitch = 89.0f;
+    if (this->pitch < -89.0f)
+        this->pitch = -89.0f;
+    glm::vec3 front;
+    front.x = cos(glm::radians(this->yaw)) * cos(glm::radians(this->pitch));
+    front.y = sin(glm::radians(this->pitch));
+    front.z = sin(glm::radians(this->yaw)) * cos(glm::radians(this->pitch));
+    this->target = glm::normalize(front);
 }
 
-void Camera::set_normal_zoom()
+void Camera::key_callback(bool is_key_press[128])
 {
-	fovy = normal_fovy;
-}
-
-void Camera::key_press(bool is_key_press[128])
-{
-
+    GLfloat rotateSpeed = 5.0f;
+    GLfloat cameraSpeed = 1.0f;
+    GLfloat zoomSpeed = 5.0f;
+    for (int i = 0; i < 128; i++)
+    {
+        if (is_key_press[i])
+		{
+			switch (i)
+			{
+				case KEY_W:
+					this->position += cameraSpeed * this->target;
+					break;
+				case KEY_S:
+					this->position -= cameraSpeed * this->target;
+					break;
+				case KEY_D:
+					this->position += glm::normalize(glm::cross(this->target, this->up)) * cameraSpeed;
+					break;
+				case KEY_A:
+					this->position -= glm::normalize(glm::cross(this->target, this->up)) * cameraSpeed;
+					break;
+				case KEY_U:
+				    this->pitch -= rotateSpeed;
+					this->rotate();
+					break;
+				case KEY_H:
+				    this->yaw -= rotateSpeed;
+					this->rotate();
+					break;
+				case KEY_J:
+				    this->pitch += rotateSpeed;
+					this->rotate();
+					break;
+				case KEY_K:
+				    this->yaw += rotateSpeed;
+					this->rotate();
+					break;
+                case KEY_Q:
+					this->zoom(-zoomSpeed);
+					break;
+                case KEY_E:
+					this->zoom(zoomSpeed);
+					break;
+				case 27:
+					exit(0);
+					break;
+			}
+		}
+    }
 }
 
 glm::mat4 Camera::get_mat()
 {
-	glm::mat4 projection, view;
-	projection = glm::perspective(fovy, (float)((float)width / (float)hight), near_plane, far_plane);
-	view = glm::mat4(right[0], right[1], right[2], 0, up[0], up[1], up[2], 0, dir[0], dir[1], dir[2], 0, 0, 0, 0, 1)
-			    * glm::mat4(1, 0, 0, -pos[0], 0, 1, 0, -pos[1], 0, 0, 1, -pos[2], 0, 0, 0, 1);
+    glm::mat4 view = glm::lookAt(this->position, this->position + this->target, this->up);
+	glm::mat4 projection = glm::perspective(this->fovy, (GLfloat)this->width / (GLfloat)this->hight, this->near_plane, this->far_plane);
 	return projection * view;
-}
-
-glm::vec4 Camera::get_dir()
-{
-	return dir;
-}
-
-glm::vec4 Camera::get_right()
-{
-	return right;
-}
-
-glm::vec4 Camera::get_pos()
-{
-	return pos;
 }

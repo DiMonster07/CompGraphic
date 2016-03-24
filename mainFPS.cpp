@@ -13,7 +13,6 @@
 #include "camera.h"
 
 #define caption ("Camera")
-#define LINE_AMOUNT 2*10
 
 using namespace std;
 
@@ -24,62 +23,47 @@ char VertexShaderName[] = "VS.txt";
 char FragmentShaderName[] = "FS.txt";
 char TextureName[] = "mine.png";
 
+glm::vec3 cubePositions[] =
+{
+	glm::vec3(0.0f,  0.0f,  0.0f),
+	glm::vec3(0.0f,  10.0f,  5.0f),
+	glm::vec3(0.0f, -10.0f, 5.0f),
+	glm::vec3(5.0f, 10.0f, 5.0f),
+	glm::vec3(-5.0f, -10.0f, 5.0f)
+};
+
+bool is_key_press[128];
+
+GLuint *vertexArrays;
+GLuint texture1;
+GLint attribArray;
+
 Program ShaderProgram;
 GLuint VBOcube, VAOcube, VAOgrid, VBOgrid;
 
 Program CreateShaderProgram();
-void CreateIndexBuffer();
 void CreateVertexBuffer();
 void Render();
-void mouse_callback(int x, int y);
-void key_callback(unsigned char key, int x, int y);
 
-glm::vec3 cubePositions[] =
-{
-	glm::vec3( 0.0f,  0.0f,  0.0f),
-	glm::vec3( 2.0f,  5.0f, -15.0f),
-	glm::vec3(-1.5f, -2.2f, -2.5f),
-	glm::vec3(-3.8f, -2.0f, -12.3f),
-	glm::vec3( 2.4f, -0.4f, -3.5f),
-	glm::vec3(-1.7f,  3.0f, -7.5f),
-	glm::vec3( 1.3f, -2.0f, -2.5f),
-	glm::vec3( 1.5f,  2.0f, -2.5f),
-	glm::vec3( 1.5f,  0.2f, -1.5f),
-	glm::vec3(-1.3f,  1.0f, -1.5f)
-};
-
-GLuint *vertexArrays;
-GLint attribArray;
-GLuint texture1;
-
-bool keys[1024];
-glm::vec3 cameraPos   = glm::vec3(0.0f, 0.0f,  2.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f,  0.0f);
+//GRID
 const int count_vertices = 806;
 float grid_vertices[count_vertices * 3];
+void add_vertex(int i, float x, float y, float z);
+void gen_grid();
 
-void add_vertex(int i, float x, float y, float z)
-{
-	grid_vertices[3 * i] = x;
-	grid_vertices[3 * i + 1] = y;
-	grid_vertices[3 * i + 2] = z;
-};
+Camera camera(70.0f, WT, HT, 0.1f, 400.0f);
 
-void gen_grid()
+void press_keys(unsigned char key, int x, int y)
 {
-	int j = 0;
-	for (int i = -1000; i <= 1000; i += 10, j += 4)
-	{
-		add_vertex(j, i, 0, -1000);
-		add_vertex(j + 1, i, 0, 1000);
-		add_vertex(j + 2, -1000, 0, i);
-		add_vertex(j + 3, 1000, 0, i);
-	}
-	add_vertex(j, 0, 0, 0);
-	add_vertex(j + 1, 0, 1000, 0);
+    is_key_press[key] = true;
+    camera.key_callback(is_key_press);
+    glutPostRedisplay();
 }
 
+void up_keys(unsigned char key, int x, int y)
+{
+	is_key_press[key] = false;
+}
 
 int main(int argc, char** argv)
 {
@@ -93,6 +77,9 @@ int main(int argc, char** argv)
 	glEnable(GL_DEPTH_TEST);
 	glewExperimental = GL_TRUE;
 	glewInit();
+
+    //setCamera(position, target, up)
+    camera.setCamera(glm::vec3(3.0f, 0.0f, -7.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f,  0.0f));
 
     gen_grid();
 	int width = 0, height = 0;
@@ -110,7 +97,6 @@ int main(int argc, char** argv)
 
 	glGenVertexArrays(1, &VAOcube);
 	glBindVertexArray(VAOcube);
-
     CreateVertexBuffer();
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
@@ -118,10 +104,6 @@ int main(int argc, char** argv)
 
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(1);
-
-	glBindVertexArray(0);
-
-    //Buffer for grid
 
 	glGenVertexArrays(1, &VAOgrid);
 	glBindVertexArray(VAOgrid);
@@ -132,12 +114,11 @@ int main(int argc, char** argv)
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(0);
-
     glBindVertexArray(0);
 
-	glClearColor(0.1f, 0.3f, 0.4f, 0.0f);
-	glutKeyboardFunc(key_callback);
-	glutPassiveMotionFunc(mouse_callback);
+	glClearColor(0.5f, 0.9f, 0.4f, 0.0f);
+	glutKeyboardFunc(press_keys);
+	glutKeyboardUpFunc(up_keys);
 	glutMainLoop();
 	return 0;
 }
@@ -150,28 +131,17 @@ void Render()
 	glUniform1i(glGetUniformLocation(ShaderProgram.programId, "ourTexture1"), 0);
 	glUseProgram(ShaderProgram.programId);
 
-	glm::mat4 model;
-	glm::mat4 view;
-	glm::mat4 projection;
-
-	view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-	projection = glm::perspective(70.0f, (GLfloat)WT / (GLfloat)HT, 0.1f, 400.0f);
-
-	GLint modelLoc = glGetUniformLocation(ShaderProgram.programId, "model");
-	GLint viewLoc = glGetUniformLocation(ShaderProgram.programId, "view");
-	GLint projLoc = glGetUniformLocation(ShaderProgram.programId, "projection");
-
-	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+	GLint mvpLoc = glGetUniformLocation(ShaderProgram.programId, "mvp");
+	glm::mat4 mvp = camera.get_mat();
 
 	glBindVertexArray(VAOcube);
-	for (GLuint i = 0; i < 10; i++)
+	glm::mat4 model;
+	for (int i = 0; i < 5; i++)
     {
-		model = glm::translate(model, cubePositions[i]);
-		GLfloat angle = 20.0f * i;
-		model = glm::rotate(model, angle, glm::vec3(1.0f, 0.5f, 0.5f));
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+        model = glm::translate(model, cubePositions[i]);
+        mvp = mvp * model;
+        glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp));
+        glDrawArrays(GL_TRIANGLES, 0, 36);
     }
 
     glBindVertexArray(VAOgrid);
@@ -180,74 +150,6 @@ void Render()
 	glUseProgram(0);
 	glBindVertexArray(0);
 	glutSwapBuffers();
-}
-
-void key_callback(unsigned char key, int x, int y)
-{
-	GLfloat cameraSpeed = 1.1f;
-	switch(key)
-	{
-		case 'w':
-			cameraPos += cameraSpeed * cameraFront;
-			break;
-		case 's':
-			cameraPos -= cameraSpeed * cameraFront;
-			break;
-		case 'd':
-			cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-			break;
-		case 'a':
-			cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-			break;
-		case 27:
-			exit(0);
-			break;
-	}
-	glutPostRedisplay();
-}
-
-GLfloat yaw    = -90.0f;
-GLfloat pitch  =  0.0f;
-GLfloat lastX  =  WT / 2.0;
-GLfloat lastY  =  HT / 2.0;
-bool firstMouse = true;
-void mouse_callback(int x, int y)
-{
-    if (firstMouse)
-    {
-        lastX = x;
-        lastY = y;
-        firstMouse = false;
-    }
-
-    GLfloat xoffset = x - lastX;
-    GLfloat yoffset = lastY - y;
-    lastX = x;
-    lastY = y;
-
-    GLfloat sensitivity = 0.5;
-    xoffset *= sensitivity;
-    yoffset *= sensitivity;
-
-    yaw   += xoffset;
-    pitch += yoffset;
-
-    if (pitch > 89.0f)
-        pitch = 89.0f;
-    if (pitch < -89.0f)
-        pitch = -89.0f;
-
-    glm::vec3 front;
-    front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-    front.y = sin(glm::radians(pitch));
-    front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-    cameraFront = glm::normalize(front);
-    glutPostRedisplay();
-}
-
-void CreateIndexBuffer()
-{
-
 }
 
 void CreateVertexBuffer()
@@ -299,6 +201,27 @@ void CreateVertexBuffer()
 	glGenBuffers(1, &VBOcube);
 	glBindBuffer(GL_ARRAY_BUFFER, VBOcube);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertices), &cube_vertices, GL_STATIC_DRAW);
+}
+
+void add_vertex(int i, float x, float y, float z)
+{
+	grid_vertices[3 * i] = x;
+	grid_vertices[3 * i + 1] = y;
+	grid_vertices[3 * i + 2] = z;
+};
+
+void gen_grid()
+{
+	int j = 0;
+	for (int i = -1000; i <= 1000; i += 10, j += 4)
+	{
+		add_vertex(j, i, 0, -1000);
+		add_vertex(j + 1, i, 0, 1000);
+		add_vertex(j + 2, -1000, 0, i);
+		add_vertex(j + 3, 1000, 0, i);
+	}
+	add_vertex(j, 0, 0, 0);
+	add_vertex(j + 1, 0, 1000, 0);
 }
 
 Program CreateShaderProgram()

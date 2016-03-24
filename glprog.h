@@ -94,7 +94,6 @@ public:
 	void Link() {
 		glLinkProgram(programId);
 	}
-
 };
 
 class Buffer
