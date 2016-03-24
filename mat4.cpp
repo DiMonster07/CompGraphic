@@ -2,7 +2,6 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
-#include "vec4.h"
 #include "mat4.h"
 #include <set>
 
@@ -17,6 +16,14 @@ Mat4::Mat4(float x11, float x12, float x13, float x14,
 	this->matrix[1][0] = x21; this->matrix[1][1] = x22; this->matrix[1][2] = x23; this->matrix[1][3] = x24;
 	this->matrix[2][0] = x31; this->matrix[2][1] = x32; this->matrix[2][2] = x33; this->matrix[2][3] = x34;
 	this->matrix[3][0] = x41; this->matrix[3][1] = x42; this->matrix[3][2] = x43; this->matrix[3][3] = x44;  
+}
+
+Mat4::Mat4(const Vec4 &v1, const Vec4 &v2, const Vec4 &v3, const Vec4 &v4)
+{
+	this->matrix[0][0] = v1.c[0]; this->matrix[0][1] = v1.c[1]; this->matrix[0][2] = v1.c[2]; this->matrix[0][3] = v1.c[3];
+	this->matrix[1][0] = v2.c[0]; this->matrix[1][1] = v2.c[1]; this->matrix[1][2] = v2.c[2]; this->matrix[1][3] = v2.c[3];
+	this->matrix[2][0] = v3.c[0]; this->matrix[2][1] = v3.c[1]; this->matrix[2][2] = v3.c[2]; this->matrix[2][3] = v3.c[3];
+	this->matrix[3][0] = v4.c[0]; this->matrix[3][1] = v4.c[1]; this->matrix[3][2] = v4.c[2]; this->matrix[3][3] = v4.c[3];
 }
 
 Mat4 Mat4::operator+(const Mat4& b)
@@ -46,6 +53,21 @@ Mat4 Mat4::operator*(const Mat4& b)
 		                          this->matrix[i][2] * b.matrix[2][j] + this->matrix[i][3] * b.matrix[3][j];
 	return result;
 }
+
+Vec4 Mat4::operator*(const Vec4& b)
+{
+    Vec4 result = Vec4();
+	result.c[0] = this->matrix[0][0] * b.c[0] + this->matrix[0][1] * b.c[1] +
+			    this->matrix[0][2] * b.c[2] + this->matrix[0][3] * b.c[3];
+	result.c[1] = this->matrix[1][0] * b.c[0] + this->matrix[1][1] * b.c[1] +
+			    this->matrix[1][2] * b.c[2] + this->matrix[1][3] * b.c[3];
+	result.c[2] = this->matrix[2][0] * b.c[0] + this->matrix[2][1] * b.c[1] +
+			    this->matrix[2][2] * b.c[2] + this->matrix[2][3] * b.c[3];
+	result.c[3] = this->matrix[3][0] * b.c[0] + this->matrix[3][1] * b.c[1] +
+			    this->matrix[3][2] * b.c[2] + this->matrix[3][3] * b.c[3];
+	return result;
+}
+
 template< typename t > 
 Mat4 Mat4::operator*(const t& b)
 {
@@ -67,6 +89,14 @@ Mat4 Mat4::operator/(const t& b)
 	return result;
 }
 
+Mat4 Mat4::ident() {
+	Mat4 result = Mat4();
+	for(int i = 0; i < 4; i++)
+			for(int j = 0; j < 4; j++)
+				result.matrix[i][j] = i == j ? 1. : 0.;
+	return result;
+}
+
 Mat4 Mat4::createIdentity()
 {
 	Mat4 result = Mat4();
@@ -83,6 +113,38 @@ Mat4 Mat4::transpose ()
 		for (int j = 0; j < 4; j++)
 			result.matrix[i][j] = this->matrix[j][i];
 	return result;
+}
+
+Mat4 Mat4::perspective(float fovy, float aspect, float near, float far)
+{
+	fovy = M_PI / 180 * fovy;
+	float left, right, bottom, top;
+	top = near * tan(fovy / 2);
+	bottom = -top;
+	right = top * aspect;
+	left = -right;
+	Mat4 temp = Mat4();
+	temp.matrix[0][0] = (2 * near) / (right - left);
+	temp.matrix[0][2] = (right + left) / (right - left);
+	temp.matrix[1][1] = (2 * near) / (top - bottom);
+	temp.matrix[1][2] = (top + bottom) / (top - bottom);
+	temp.matrix[2][2] = -(far + near) / (far - near);
+	temp.matrix[2][3] = -(2 * far * near) / (far - near);
+	temp.matrix[3][2] = -1;
+	return temp*(*this);
+}
+
+Mat4 Mat4::orthographic(float left, float right, float bottom, float top, float near, float far)
+{
+	Mat4 temp = Mat4().ident();
+	temp.matrix[0][0] = 2.0f / (right - left);
+	temp.matrix[1][1] = 2.0f / (top - bottom);
+	temp.matrix[2][2] = -2.0f / (far - near);
+	temp.matrix[3][3] = 1.0f;
+	temp.matrix[0][3] = -(right + left) / (right - left);
+	temp.matrix[1][3] = -(top + bottom) / (top - bottom);
+	temp.matrix[2][3] = -(far + near) / (far - near);
+	return temp*(*this);
 }
 
 float Mat4::det2(int c1, int c2, int r1, int r2)
@@ -111,7 +173,7 @@ float Mat4::det4()
 
 Mat4 Mat4::inverse()
 {
-	Mat4 result = Mat4();
+	Mat4 result = Mat4().ident();
 	float det = det4();
 	result.matrix[0][0] =  det3(1, 2, 3, 1, 2, 3)/det;
 	result.matrix[0][1] = -det3(0, 2, 3, 1, 2, 3)/det;
@@ -132,6 +194,62 @@ Mat4 Mat4::inverse()
 	return result;
 }
 
+Mat4 Mat4::perspective(Vec4 v) {
+	return Mat4(
+			Vec4(1.0f, 0.0f, 0.0f, v.c[0]),
+			Vec4(0.0f, 1.0f, 0.0f, v.c[1]),
+			Vec4(0.0f, 0.0f, 1.0f, v.c[2]),
+			Vec4(0.0f, 0.0f, 0.0f, 1.0f))*(*this);
+}
+
+Mat4 Mat4::translate(Vec4 v) {
+	return Mat4(
+			Vec4(1.0f, 0.0f, 0.0f, 0.0f),
+			Vec4(0.0f, 1.0f, 0.0f, 0.0f),
+			Vec4(0.0f, 0.0f, 1.0f, 0.0f),
+			Vec4(v.c[0], v.c[1], v.c[2], 1.0f))*(*this);
+}
+
+Mat4 Mat4::scale(Vec4 v) {
+	return Mat4(
+		    Vec4(v.c[0], 0.0f, 0.0f, 0.0f),
+			Vec4(0.0f, v.c[1], 0.0f, 0.0f),
+			Vec4(0.0f, 0.0f, v.c[2], 0.0f),
+			Vec4(0.0f, 0.0f, 0.0f,   1.0f))*(*this);
+}
+
+Mat4 Mat4::rotate(Vec4 v, float angle) {
+	Mat4 general_rotation = Mat4::ident();
+	angle = angle/180.*M_PI;
+	if (fabs(v.c[0]) >= epsilon)
+	{
+		general_rotation = general_rotation * Mat4(
+				Vec4(1.0f, 0.0f, 0.0f, 0.0f),
+				Vec4(0.0f, cos(angle), -sin(angle), 0.0f),
+				Vec4(0.0f, sin(angle),  cos(angle), 0.0f),
+				Vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	}
+	if (fabs(v.c[1]) >= epsilon)
+	{
+		general_rotation = general_rotation * Mat4(
+				Vec4(cos(angle), 0.0f, sin(angle), 0.0f),
+				Vec4(0.0f, 1.0f, 0.0f, 0.0f),
+				Vec4(-sin(angle), 0.0f, cos(angle), 0.0f),
+				Vec4(0.0f, 0.0f, 0.0f, 1.0f));
+
+	}
+	if (fabs(v.c[2]) >= epsilon)
+	{
+		general_rotation = general_rotation * Mat4(
+				Vec4(cos(angle), -sin(angle), 0.0f, 0.0f),
+				Vec4(sin(angle),  cos(angle), 0.0f, 0.0f),
+				Vec4(0.0f, 0.0f, 1.0f, 0.0f),
+				Vec4(0.0f, 0.0f, 0.0f, 1.0f));
+
+	}
+	return general_rotation*(*this);
+}
+
 void Mat4::print()
 {
 	for (int i = 0; i < 4; i++)
@@ -140,15 +258,4 @@ void Mat4::print()
 			cout << this->matrix[i][j] << " ";
 		cout << endl;
 	}
-}
-
-int main () 
-{
-	Mat4 mat1 = Mat4(1, 2, 3, 4, 2, 2, 3, 2, 3, 1, 1, 3, 1, 2, 2, 4);
-	Mat4 mat2 = mat1.inverse();
-	mat2.print();
-	cout << "Det: " << mat1.det4() << endl;
-	//Mat4 res = mat1 * mat2;
-	//res.print();
-	return 0;
 }
