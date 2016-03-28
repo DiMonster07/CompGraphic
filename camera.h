@@ -13,7 +13,15 @@
 #define KEY_K ('k')
 #define KEY_Q ('q')
 #define KEY_E ('e')
+#define KEY_Z ('z')
+#define KEY_X ('x')
 
+
+struct DirLight
+{
+    glm::vec3 color;
+    float intensity;
+};
 
 class Camera
 {
@@ -23,8 +31,10 @@ class Camera
 		void zoom(float value);
 		void rotate();
 		void key_callback(bool is_key_press[128]);
+		void set_light_param(glm::vec3 color, float intesity);
 		glm::mat4 get_mat();
 		GLint width, hight;
 		GLfloat fovy, near_plane, far_plane, left, right_fur, bottom, top, pitch, yaw;
 		glm::vec3 position, up, target;
+		DirLight light;
 };

@@ -38,6 +38,12 @@ void Camera::rotate()
     this->target = glm::normalize(front);
 }
 
+void Camera::set_light_param(glm::vec3 color, float intesity)
+{
+    this->light.color = color;
+    this->light.intensity = intesity;
+}
+
 void Camera::key_callback(bool is_key_press[128])
 {
     GLfloat rotateSpeed = 5.0f;
@@ -61,7 +67,7 @@ void Camera::key_callback(bool is_key_press[128])
 				case KEY_A:
 					this->position -= glm::normalize(glm::cross(this->target, this->up)) * cameraSpeed;
 					break;
-				case KEY_U:
+				case KEY_J:
 				    this->pitch -= rotateSpeed;
 					this->rotate();
 					break;
@@ -69,7 +75,7 @@ void Camera::key_callback(bool is_key_press[128])
 				    this->yaw -= rotateSpeed;
 					this->rotate();
 					break;
-				case KEY_J:
+				case KEY_U:
 				    this->pitch += rotateSpeed;
 					this->rotate();
 					break;
@@ -82,6 +88,12 @@ void Camera::key_callback(bool is_key_press[128])
 					break;
                 case KEY_E:
 					this->zoom(zoomSpeed);
+					break;
+                case KEY_Z:
+					this->light.intensity -= 0.05f;
+					break;
+                case KEY_X:
+					this->light.intensity += 0.05f;
 					break;
 				case 27:
 					exit(0);

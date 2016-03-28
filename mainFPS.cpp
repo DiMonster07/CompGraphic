@@ -23,19 +23,12 @@ char VertexShaderName[] = "VS.txt";
 char FragmentShaderName[] = "FS.txt";
 char TextureName[] = "mine.png";
 
-glm::vec3 cubePositions[] =
-{
-	glm::vec3(0.0f,  0.0f,  0.0f),
-	glm::vec3(0.0f,  10.0f,  5.0f),
-	glm::vec3(0.0f, -10.0f, 5.0f),
-	glm::vec3(5.0f, 10.0f, 5.0f),
-	glm::vec3(-5.0f, -10.0f, 5.0f)
-};
-
 bool is_key_press[128];
 
 GLuint *vertexArrays;
 GLuint texture1;
+GLuint dirLightColor;
+GLuint dirLightIntensity;
 GLint attribArray;
 
 Program ShaderProgram;
@@ -79,7 +72,7 @@ int main(int argc, char** argv)
 	glewInit();
 
     //setCamera(position, target, up)
-    camera.setCamera(glm::vec3(3.0f, 0.0f, -7.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f,  0.0f));
+    camera.setCamera(glm::vec3(25.0f, 50.0f, -45.0f), glm::vec3(-0.5f, -1.5f, 1.0f), glm::vec3(0.0f, 1.0f,  0.0f));
 
     gen_grid();
 	int width = 0, height = 0;
@@ -116,7 +109,15 @@ int main(int argc, char** argv)
 	glEnableVertexAttribArray(0);
     glBindVertexArray(0);
 
-	glClearColor(0.5f, 0.9f, 0.4f, 0.0f);
+
+    //LIGHT
+    camera.set_light_param(glm::vec3(1.0f, 1.0f, 1.0f), 0.5f);
+
+	dirLightColor = glGetUniformLocation(ShaderProgram.programId, "gDirLight.color");
+    dirLightIntensity = glGetUniformLocation(ShaderProgram.programId, "gDirLight.intensity");
+
+    /////
+	glClearColor(0.9f, 0.9f, 0.9f, 0.5f);
 	glutKeyboardFunc(press_keys);
 	glutKeyboardUpFunc(up_keys);
 	glutMainLoop();
@@ -128,21 +129,21 @@ void Render()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture1);
-	glUniform1i(glGetUniformLocation(ShaderProgram.programId, "ourTexture1"), 0);
+	glUniform1i(glGetUniformLocation(ShaderProgram.programId, "ourTexture"), 0);
+
 	glUseProgram(ShaderProgram.programId);
+
+    glUniform3f(dirLightColor, camera.light.color.x, camera.light.color.y, camera.light.color.z);
+    glUniform1f(dirLightIntensity,  camera.light.intensity);
 
 	GLint mvpLoc = glGetUniformLocation(ShaderProgram.programId, "mvp");
 	glm::mat4 mvp = camera.get_mat();
 
 	glBindVertexArray(VAOcube);
 	glm::mat4 model;
-	for (int i = 0; i < 5; i++)
-    {
-        model = glm::translate(model, cubePositions[i]);
-        mvp = mvp * model;
-        glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp));
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-    }
+    mvp = mvp * model;
+    glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp));
+    glDrawArrays(GL_TRIANGLES, 0, 36);
 
     glBindVertexArray(VAOgrid);
     glDrawArrays(GL_LINES, 0, count_vertices);
@@ -156,47 +157,47 @@ void CreateVertexBuffer()
 {
 	GLfloat cube_vertices[] =
 	{
-		-1.5f, -1.5f, -1.5f,  0.0f, 0.0f,
-		 1.5f, -1.5f, -1.5f,  1.0f, 0.0f,
-		 1.5f,  1.5f, -1.5f,  1.0f, 1.0f,
-		 1.5f,  1.5f, -1.5f,  1.0f, 1.0f,
-		-1.5f,  1.5f, -1.5f,  0.0f, 1.0f,
-		-1.5f, -1.5f, -1.5f,  0.0f, 0.0f,
+		-10.5f, -10.5f, -10.5f,  0.0f, 0.0f,
+		 10.5f, -10.5f, -10.5f,  1.0f, 0.0f,
+		 10.5f,  10.5f, -10.5f,  1.0f, 1.0f,
+		 10.5f,  10.5f, -10.5f,  1.0f, 1.0f,
+		-10.5f,  10.5f, -10.5f,  0.0f, 1.0f,
+		-10.5f, -10.5f, -10.5f,  0.0f, 0.0f,
 
-		-1.5f, -1.5f,  1.5f,  0.0f, 0.0f,
-		 1.5f, -1.5f,  1.5f,  1.0f, 0.0f,
-		 1.5f,  1.5f,  1.5f,  1.0f, 1.0f,
-		 1.5f,  1.5f,  1.5f,  1.0f, 1.0f,
-		-1.5f,  1.5f,  1.5f,  0.0f, 1.0f,
-		-1.5f, -1.5f,  1.5f,  0.0f, 0.0f,
+		-10.5f, -10.5f,  10.5f,  0.0f, 0.0f,
+		 10.5f, -10.5f,  10.5f,  1.0f, 0.0f,
+		 10.5f,  10.5f,  10.5f,  1.0f, 1.0f,
+		 10.5f,  10.5f,  10.5f,  1.0f, 1.0f,
+		-10.5f,  10.5f,  10.5f,  0.0f, 1.0f,
+		-10.5f, -10.5f,  10.5f,  0.0f, 0.0f,
 
-		-1.5f,  1.5f,  1.5f,  1.0f, 0.0f,
-		-1.5f,  1.5f, -1.5f,  1.0f, 1.0f,
-		-1.5f, -1.5f, -1.5f,  0.0f, 1.0f,
-		-1.5f, -1.5f, -1.5f,  0.0f, 1.0f,
-		-1.5f, -1.5f,  1.5f,  0.0f, 0.0f,
-		-1.5f,  1.5f,  1.5f,  1.0f, 0.0f,
+		-10.5f,  10.5f,  10.5f,  1.0f, 0.0f,
+		-10.5f,  10.5f, -10.5f,  1.0f, 1.0f,
+		-10.5f, -10.5f, -10.5f,  0.0f, 1.0f,
+		-10.5f, -10.5f, -10.5f,  0.0f, 1.0f,
+		-10.5f, -10.5f,  10.5f,  0.0f, 0.0f,
+		-10.5f,  10.5f,  10.5f,  1.0f, 0.0f,
 
-		 1.5f,  1.5f,  1.5f,  1.0f, 0.0f,
-		 1.5f,  1.5f, -1.5f,  1.0f, 1.0f,
-		 1.5f, -1.5f, -1.5f,  0.0f, 1.0f,
-		 1.5f, -1.5f, -1.5f,  0.0f, 1.0f,
-		 1.5f, -1.5f,  1.5f,  0.0f, 0.0f,
-		 1.5f,  1.5f,  1.5f,  1.0f, 0.0f,
+		 10.5f,  10.5f,  10.5f,  1.0f, 0.0f,
+		 10.5f,  10.5f, -10.5f,  1.0f, 1.0f,
+		 10.5f, -10.5f, -10.5f,  0.0f, 1.0f,
+		 10.5f, -10.5f, -10.5f,  0.0f, 1.0f,
+		 10.5f, -10.5f,  10.5f,  0.0f, 0.0f,
+		 10.5f,  10.5f,  10.5f,  1.0f, 0.0f,
 
-		-1.5f, -1.5f, -1.5f,  0.0f, 1.0f,
-		 1.5f, -1.5f, -1.5f,  1.0f, 1.0f,
-		 1.5f, -1.5f,  1.5f,  1.0f, 0.0f,
-		 1.5f, -1.5f,  1.5f,  1.0f, 0.0f,
-		-1.5f, -1.5f,  1.5f,  0.0f, 0.0f,
-		-1.5f, -1.5f, -1.5f,  0.0f, 1.0f,
+		-10.5f, -10.5f, -10.5f,  0.0f, 1.0f,
+		 10.5f, -10.5f, -10.5f,  1.0f, 1.0f,
+		 10.5f, -10.5f,  10.5f,  1.0f, 0.0f,
+		 10.5f, -10.5f,  10.5f,  1.0f, 0.0f,
+		-10.5f, -10.5f,  10.5f,  0.0f, 0.0f,
+		-10.5f, -10.5f, -10.5f,  0.0f, 1.0f,
 
-		-1.5f,  1.5f, -1.5f,  0.0f, 1.0f,
-		 1.5f,  1.5f, -1.5f,  1.0f, 1.0f,
-		 1.5f,  1.5f,  1.5f,  1.0f, 0.0f,
-		 1.5f,  1.5f,  1.5f,  1.0f, 0.0f,
-		-1.5f,  1.5f,  1.5f,  0.0f, 0.0f,
-		-1.5f,  1.5f, -1.5f,  0.0f, 1.0f
+		-10.5f,  10.5f, -10.5f,  0.0f, 1.0f,
+		 10.5f,  10.5f, -10.5f,  1.0f, 1.0f,
+		 10.5f,  10.5f,  10.5f,  1.0f, 0.0f,
+		 10.5f,  10.5f,  10.5f,  1.0f, 0.0f,
+		-10.5f,  10.5f,  10.5f,  0.0f, 0.0f,
+		-10.5f,  10.5f, -10.5f,  0.0f, 1.0f
 	};
 	glGenBuffers(1, &VBOcube);
 	glBindBuffer(GL_ARRAY_BUFFER, VBOcube);
@@ -213,15 +214,14 @@ void add_vertex(int i, float x, float y, float z)
 void gen_grid()
 {
 	int j = 0;
-	for (int i = -1000; i <= 1000; i += 10, j += 4)
+	for (int i = -200; i <= 200; i += 10, j += 4)
 	{
-		add_vertex(j, i, 0, -1000);
-		add_vertex(j + 1, i, 0, 1000);
-		add_vertex(j + 2, -1000, 0, i);
-		add_vertex(j + 3, 1000, 0, i);
+		add_vertex(j, i, 0, -200);
+		add_vertex(j + 1, i, 0, 200);
+		add_vertex(j + 2, -200, 0, i);
+		add_vertex(j + 3, 200, 0, i);
 	}
 	add_vertex(j, 0, 0, 0);
-	add_vertex(j + 1, 0, 1000, 0);
 }
 
 Program CreateShaderProgram()

@@ -1,10 +1,10 @@
 # depslib dependency file v1.0
-1458827429 source:/home/dmitrii/workspace/AlaMine/camera.cpp
+1459131003 source:/home/dmitrii/workspace/AlaMine/camera.cpp
 	"camera.h"
 	<iostream>
 	<fstream>
 
-1458827189 /home/dmitrii/workspace/AlaMine/camera.h
+1459131058 /home/dmitrii/workspace/AlaMine/camera.h
 	<glm/glm.hpp>
 	<GL/gl.h>
 	<glm/gtc/matrix_transform.hpp>
@@ -19,7 +19,7 @@
 	<set>
 	"vec4.h"
 
-1458827106 source:/home/dmitrii/workspace/AlaMine/mainFPS.cpp
+1459130885 source:/home/dmitrii/workspace/AlaMine/mainFPS.cpp
 	<iostream>
 	<fstream>
 	<GL/glew.h>

@@ -3,10 +3,17 @@ in vec2 TexCoord;
 
 out vec4 color;
 
-uniform sampler2D ourTexture1;
+
+struct DirLight
+{
+    vec3 color;
+    float intensity;
+};
+
+uniform DirLight gDirLight;
+uniform sampler2D ourTexture;
 
 void main()
 {
-	color = texture2D(ourTexture1, TexCoord.st);
-	//color = vec4(0.4, 0.8, 0.7, 0.7);
+	color = texture2D(ourTexture, TexCoord.st) * vec4(gDirLight.color, 1.0) * gDirLight.intensity;
 }
