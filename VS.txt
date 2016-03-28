@@ -3,15 +3,17 @@ layout (location = 0) in vec3 position;
 layout (location = 1) in vec2 texCoord;
 layout (location = 2) in vec3 normal;
 
-out vec2 TexCoord;
-out vec3 out_normal;
-
 uniform mat4 mvp;
 uniform mat4 gWorld;
+
+out vec2 TexCoord;
+out vec3 out_normal;
+out vec3 WorldPos;
 
 void main()
 {
     gl_Position = mvp * vec4(position, 1.0f);
     TexCoord = vec2(texCoord.x, 1.0 - texCoord.y);
     out_normal = (gWorld * vec4(normal, 0.0)).xyz;
+    WorldPos = (gWorld * vec4(position, 1.0)).xyz;
 }

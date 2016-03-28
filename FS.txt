@@ -1,6 +1,7 @@
 #version 330 core
 in vec2 TexCoord;
 in vec3 out_normal;
+in vec3 WorldPos;
 
 out vec4 color;
 
@@ -15,18 +16,30 @@ struct DirLight
 uniform DirLight gDirLight;
 uniform sampler2D ourTexture;
 
+uniform vec3 gEyeWorldPos;
+uniform float gMatSpecularIntensity;
+uniform float gSpecularPower;
+
 void main()
 {
     vec4 AmbientColor = vec4(gDirLight.color, 1.0f) * gDirLight.ambient_intensity;
-    float DiffuseFactor = dot(normalize(out_normal), -gDirLight.direction);
-    vec4 DiffuseColor;
+    vec3 Normal = normalize(out_normal);
+    float DiffuseFactor = dot(Normal, -gDirLight.direction);
+
+    vec4 DiffuseColor = vec4(0, 0, 0, 0);
+    vec4 SpecularColor = vec4(0, 0, 0, 0);
+
     if (DiffuseFactor > 0)
     {
         DiffuseColor = vec4(gDirLight.color, 1.0f) * gDirLight.diffuse_intensity * DiffuseFactor;
+        vec3 VertexToEye = normalize(gEyeWorldPos - WorldPos);
+        vec3 LightReflect = normalize(reflect(gDirLight.direction, Normal));
+        float SpecularFactor = dot(VertexToEye, LightReflect);
+        SpecularFactor = pow(SpecularFactor, gSpecularPower);
+        if (SpecularFactor > 0)
+        {
+            SpecularColor = vec4(gDirLight.color, 1.0f) * gMatSpecularIntensity * SpecularFactor;
+        }
     }
-    else
-    {
-        DiffuseColor = vec4(0, 0, 0, 0);
-    }
-	color = texture2D(ourTexture, TexCoord.st) * vec4(gDirLight.color, 1.0) * (AmbientColor + DiffuseColor);
+	color = texture2D(ourTexture, TexCoord.st) * (AmbientColor + DiffuseColor + SpecularColor);
 }

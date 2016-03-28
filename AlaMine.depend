@@ -55,12 +55,12 @@
 	<cmath>
 	"vec4.h"
 
-1459147317 source:/home/dmitrii/workspace/CompGraphic/camera.cpp
+1459174451 source:/home/dmitrii/workspace/CompGraphic/camera.cpp
 	"camera.h"
 	<iostream>
 	<fstream>
 
-1459162299 /home/dmitrii/workspace/CompGraphic/camera.h
+1459172114 /home/dmitrii/workspace/CompGraphic/camera.h
 	<glm/glm.hpp>
 	<GL/gl.h>
 	<glm/gtc/matrix_transform.hpp>
@@ -90,7 +90,7 @@
 	<cmath>
 	"vec4.h"
 
-1459170094 source:/home/dmitrii/workspace/CompGraphic/mainFPS.cpp
+1459174632 source:/home/dmitrii/workspace/CompGraphic/mainFPS.cpp
 	<iostream>
 	<fstream>
 	<GL/glew.h>

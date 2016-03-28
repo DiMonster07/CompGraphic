@@ -18,6 +18,11 @@ void Camera::setCamera(glm::vec3 position, glm::vec3 target, glm::vec3 up)
     this->up = up;
 }
 
+void Camera::lightRender()
+{
+
+}
+
 void Camera::zoom(float value)
 {
 	fovy += value;
@@ -49,7 +54,7 @@ void Camera::set_light_param(glm::vec3 color, float ambient_intensity, glm::vec3
 void Camera::key_callback(bool is_key_press[128])
 {
     GLfloat rotateSpeed = 5.0f;
-    GLfloat cameraSpeed = 1.0f;
+    GLfloat cameraSpeed = 3.0f;
     GLfloat zoomSpeed = 5.0f;
     for (int i = 0; i < 128; i++)
     {

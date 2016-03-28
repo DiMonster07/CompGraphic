@@ -29,10 +29,16 @@ bool is_key_press[128];
 
 GLuint *vertexArrays;
 GLuint texture1;
+
 GLuint dirLightColor;
 GLuint dirLightIntensity;
 GLuint dirLightDirection;
 GLuint dirLightDiffuseIntensity;
+
+GLuint EyeWorldPos;
+GLuint MatSpecularIntensityLoc;
+GLuint SpecularPowerLoc;
+
 GLint attribArray;
 GLint gWorldLoc, mvpLoc;
 
@@ -54,17 +60,16 @@ void mInit();
 void press_keys(unsigned char key, int x, int y);
 void up_keys(unsigned char key, int x, int y);
 void calcNormals(const unsigned int* pIndices, unsigned int IndexCount, Vertex* pVertices, unsigned int VertexCount);
-Camera camera(70.0f, WT, HT, 0.1f, 400.0f);
+Camera camera(70.0f, WT, HT, 0.1f, 600.0f);
 
 int main(int argc, char** argv)
 {
     glutInit(&argc, argv);
     mInit();
-    //setCamera(position, target, up)
     camera.setCamera(
-                     glm::vec3(25.0f, 50.0f, -45.0f),
-                     glm::vec3(-0.5f, -1.5f, 1.0f),
-                     glm::vec3(0.0f, 1.0f,  0.0f)
+                     glm::vec3(25.0f, 50.0f, -45.0f), //position
+                     glm::vec3(-0.5f, -1.5f, 1.0f),   //target
+                     glm::vec3(0.0f, 1.0f,  0.0f)     //up
                     );
     gen_grid();
 	int width = 0, height = 0;
@@ -109,10 +114,15 @@ int main(int argc, char** argv)
     //LIGHT
 
     camera.set_light_param(glm::vec3(1.0f, 1.0f, 1.0f), 0.5f, glm::vec3(0.0f, 1.0f, 0.0f), 0.75f);
+
 	dirLightColor = glGetUniformLocation(ShaderProgram.programId, "gDirLight.color");
     dirLightIntensity = glGetUniformLocation(ShaderProgram.programId, "gDirLight.ambient_intensity");
     dirLightDirection = glGetUniformLocation(ShaderProgram.programId, "gDirLight.direction");
     dirLightDiffuseIntensity = glGetUniformLocation(ShaderProgram.programId, "gDirLight.diffuse_intensity");
+
+    EyeWorldPos = glGetUniformLocation(ShaderProgram.programId, "gEyeWorldPos");
+    MatSpecularIntensityLoc = glGetUniformLocation(ShaderProgram.programId, "gMatSpecularIntensity");
+    SpecularPowerLoc = glGetUniformLocation(ShaderProgram.programId, "gSpecularPower");
 
     /////
 
@@ -146,12 +156,15 @@ void Render()
     glUniform3f(dirLightDirection, camera.light.direction.x, camera.light.direction.y, camera.light.direction.z);
     glUniform1f(dirLightDiffuseIntensity,  camera.light.diffuse_intensity);
 
+    glUniform3f(EyeWorldPos, camera.position.x, camera.position.y, camera.position.z);
+    glUniform1f(MatSpecularIntensityLoc, 1.0f);
+    glUniform1f(SpecularPowerLoc, 64.0f);
+
 	glm::mat4 mvp = camera.get_mat();
 
     ////////////CUBE//////////////////////
 
 	glBindVertexArray(cube.VAO);
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBOcube);
 	glm::mat4 model;
     mvp = mvp * model;
     glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp));
