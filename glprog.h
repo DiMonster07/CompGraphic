@@ -1,5 +1,4 @@
-#ifndef GLPROG
-#define GLPROG
+#pragma once
 
 #include <GL/glew.h>
 #include <GL/freeglut.h>
@@ -130,5 +129,3 @@ public:
 		glBindVertexArray(0);
 	}
 };
-
-#endif

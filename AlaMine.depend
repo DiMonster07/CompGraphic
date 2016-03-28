@@ -55,3 +55,80 @@
 	<cmath>
 	"vec4.h"
 
+1459147317 source:/home/dmitrii/workspace/CompGraphic/camera.cpp
+	"camera.h"
+	<iostream>
+	<fstream>
+
+1459162299 /home/dmitrii/workspace/CompGraphic/camera.h
+	<glm/glm.hpp>
+	<GL/gl.h>
+	<glm/gtc/matrix_transform.hpp>
+
+1450626316 source:/home/dmitrii/workspace/CompGraphic/mat4.cpp
+	<stdlib.h>
+	<iostream>
+	<fstream>
+	<cmath>
+	"mat4.h"
+	<set>
+
+1450621140 /home/dmitrii/workspace/CompGraphic/mat4.h
+	<stdlib.h>
+	<iostream>
+	<fstream>
+	<cmath>
+	<set>
+	"vec4.h"
+
+1457655515 /home/dmitrii/workspace/CompGraphic/vec4.h
+
+1456713614 source:/home/dmitrii/workspace/CompGraphic/vec4.cpp
+	<stdlib.h>
+	<iostream>
+	<fstream>
+	<cmath>
+	"vec4.h"
+
+1459167719 source:/home/dmitrii/workspace/CompGraphic/mainFPS.cpp
+	<iostream>
+	<fstream>
+	<GL/glew.h>
+	<GL/freeglut.h>
+	<GL/gl.h>
+	<GL/glfw.h>
+	<SOIL/SOIL.h>
+	<glm/glm.hpp>
+	<glm/gtc/matrix_transform.hpp>
+	<glm/gtc/type_ptr.hpp>
+	"glprog.h"
+	"camera.h"
+	"object.h"
+
+1459160699 /home/dmitrii/workspace/CompGraphic/glprog.h
+	<GL/glew.h>
+	<GL/freeglut.h>
+	<iostream>
+	<fstream>
+	<string.h>
+
+1459164439 /home/dmitrii/workspace/CompGraphic/object.h
+	<iostream>
+	<fstream>
+	<GL/glew.h>
+	<GL/freeglut.h>
+	<GL/gl.h>
+	<GL/glfw.h>
+	<glm/glm.hpp>
+	<glm/gtc/matrix_transform.hpp>
+	<glm/gtc/type_ptr.hpp>
+
+1459164247 source:/home/dmitrii/workspace/CompGraphic/object.cpp
+	"object.h"
+
+1459164416 /home/dmitrii/workspace/CompGraphic/meta.h
+	<GL/glew.h>
+	<GL/freeglut.h>
+	<GL/gl.h>
+	<glm/glm.hpp>
+

@@ -1,13 +1,15 @@
 #version 330 core
 in vec2 TexCoord;
+in vec3 out_normal;
 
 out vec4 color;
-
 
 struct DirLight
 {
     vec3 color;
-    float intensity;
+    float ambient_intensity;
+    vec3 direction;
+    float diffuse_intensity;
 };
 
 uniform DirLight gDirLight;
@@ -15,5 +17,16 @@ uniform sampler2D ourTexture;
 
 void main()
 {
-	color = texture2D(ourTexture, TexCoord.st) * vec4(gDirLight.color, 1.0) * gDirLight.intensity;
+    vec4 AmbientColor = vec4(gDirLight.color, 1.0f) * gDirLight.ambient_intensity;
+    float DiffuseFactor = dot(normalize(out_normal), -gDirLight.direction);
+    vec4 DiffuseColor;
+    if (DiffuseFactor > 0)
+    {
+        DiffuseColor = vec4(gDirLight.color, 1.0f) * gDirLight.diffuse_intensity * DiffuseFactor;
+    }
+    else
+    {
+        DiffuseColor = vec4(0, 0, 0, 0);
+    }
+	color = texture2D(ourTexture, TexCoord.st) * vec4(gDirLight.color, 1.0) * (AmbientColor + DiffuseColor);
 }

@@ -38,10 +38,12 @@ void Camera::rotate()
     this->target = glm::normalize(front);
 }
 
-void Camera::set_light_param(glm::vec3 color, float intesity)
+void Camera::set_light_param(glm::vec3 color, float ambient_intensity, glm::vec3 direction, float diffuse_intensity)
 {
     this->light.color = color;
-    this->light.intensity = intesity;
+    this->light.ambient_intensity = ambient_intensity;
+    this->light.direction = direction;
+    this->light.diffuse_intensity = diffuse_intensity;
 }
 
 void Camera::key_callback(bool is_key_press[128])
@@ -90,10 +92,16 @@ void Camera::key_callback(bool is_key_press[128])
 					this->zoom(zoomSpeed);
 					break;
                 case KEY_Z:
-					this->light.intensity -= 0.05f;
+					this->light.ambient_intensity -= 0.05f;
 					break;
                 case KEY_X:
-					this->light.intensity += 0.05f;
+					this->light.ambient_intensity += 0.05f;
+					break;
+                case KEY_C:
+					this->light.diffuse_intensity -= 0.05f;
+					break;
+                case KEY_V:
+					this->light.diffuse_intensity += 0.05f;
 					break;
 				case 27:
 					exit(0);
