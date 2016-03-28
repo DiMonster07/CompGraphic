@@ -12,6 +12,7 @@
 #include "glprog.h"
 #include "camera.h"
 #include "object.h"
+#include "meta.h"
 
 #define caption ("Camera")
 
@@ -38,10 +39,10 @@ GLint gWorldLoc, mvpLoc;
 Object cube;
 
 Program ShaderProgram;
-GLuint VBOcube, VAOcube, VAOgrid, VBOgrid;
+GLuint VBOcube, VAOcube, IBOcube, VAOgrid, VBOgrid;
 
 Program CreateShaderProgram();
-void CreateVertexBuffer();
+void initCube();
 void Render();
 
 //GRID
@@ -52,7 +53,7 @@ void gen_grid();
 void mInit();
 void press_keys(unsigned char key, int x, int y);
 void up_keys(unsigned char key, int x, int y);
-void calcNormals(Vertex* pVertices, unsigned int VertexCount);
+void calcNormals(const unsigned int* pIndices, unsigned int IndexCount, Vertex* pVertices, unsigned int VertexCount);
 Camera camera(70.0f, WT, HT, 0.1f, 400.0f);
 
 int main(int argc, char** argv)
@@ -79,9 +80,8 @@ int main(int argc, char** argv)
 	attribArray = glGetAttribLocation(ShaderProgram.programId, "position");
 	ShaderProgram = CreateShaderProgram();
 
-	glGenVertexArrays(1, &VAOcube);
-	glBindVertexArray(VAOcube);
-    CreateVertexBuffer();
+    initCube();
+    glBindVertexArray(cube.VAO);
 
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
@@ -150,11 +150,12 @@ void Render()
 
     ////////////CUBE//////////////////////
 
-	glBindVertexArray(VAOcube);
+	glBindVertexArray(cube.VAO);
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBOcube);
 	glm::mat4 model;
     mvp = mvp * model;
     glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp));
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
     ///////////////////////////////////////
 
@@ -166,69 +167,26 @@ void Render()
 	glutSwapBuffers();
 }
 
-void CreateVertexBuffer()
+void initCube()
 {
-    Vertex cube_vertices[36] =
-	{
-		Vertex(glm::vec3(-10.5f, -10.5f, -10.5f),  glm::vec2(0.0f, 0.0f)),
-		Vertex(glm::vec3(10.5f, -10.5f, -10.5f),  glm::vec2(1.0f, 0.0f)),
-        Vertex(glm::vec3(10.5f, 10.5f, -10.5f),  glm::vec2(1.0f, 1.0f)),
-        Vertex(glm::vec3(10.5f, 10.5f, -10.5f),  glm::vec2(1.0f, 1.0f)),
-        Vertex(glm::vec3(-10.5f, 10.5f, -10.5f),  glm::vec2(0.0f, 1.0f)),
-		Vertex(glm::vec3(-10.5f, -10.5f, -10.5f),  glm::vec2(0.0f, 0.0f)),
-
-        Vertex(glm::vec3(-10.5f, -10.5f, 10.5f),  glm::vec2(0.0f, 0.0f)),
-		Vertex(glm::vec3(10.5f, -10.5f, 10.5f),  glm::vec2(1.0f, 0.0f)),
-		Vertex(glm::vec3(10.5f, 10.5f, 10.5f),  glm::vec2(1.0f, 1.0f)),
-		Vertex(glm::vec3(10.5f, 10.5f, 10.5f),  glm::vec2(1.0f, 1.0f)),
-		Vertex(glm::vec3(-10.5f, 10.5f, 10.5f),  glm::vec2(0.0f, 1.0f)),
-		Vertex(glm::vec3(-10.5f, -10.5f, 10.5f),  glm::vec2(0.0f, 0.0f)),
-
-        Vertex(glm::vec3(-10.5f, 10.5f, 10.5f),  glm::vec2(1.0f, 0.0f)),
-		Vertex(glm::vec3(-10.5f, 10.5f, -10.5f),  glm::vec2(1.0f, 1.0f)),
-		Vertex(glm::vec3(-10.5f, -10.5f, -10.5f),  glm::vec2(0.0f, 1.0f)),
-		Vertex(glm::vec3(-10.5f, -10.5f, -10.5f),  glm::vec2(0.0f, 1.0f)),
-		Vertex(glm::vec3(-10.5f, -10.5f, 10.5f),  glm::vec2(0.0f, 0.0f)),
-		Vertex(glm::vec3(-10.5f, 10.5f, 10.5f),  glm::vec2(1.0f, 0.0f)),
-
-        Vertex(glm::vec3(10.5f, 10.5f, 10.5f),  glm::vec2(1.0f, 0.0f)),
-		Vertex(glm::vec3(10.5f, 10.5f, -10.5f),  glm::vec2(1.0f, 1.0f)),
-		Vertex(glm::vec3(10.5f, -10.5f, -10.5f),  glm::vec2(0.0f, 1.0f)),
-		Vertex(glm::vec3(10.5f, -10.5f, -10.5f),  glm::vec2(0.0f, 1.0f)),
-		Vertex(glm::vec3(10.5f, -10.5f, 10.5f),  glm::vec2(0.0f, 0.0f)),
-		Vertex(glm::vec3(10.5f, 10.5f, 10.5f),  glm::vec2(1.0f, 0.0f)),
-
-        Vertex(glm::vec3(-10.5f, -10.5f, -10.5f),  glm::vec2(0.0f, 0.0f)),
-		Vertex(glm::vec3(10.5f, -10.5f, -10.5f),  glm::vec2(1.0f, 1.0f)),
-		Vertex(glm::vec3(10.5f, -10.5f, 10.5f),  glm::vec2(1.0f, 0.0f)),
-		Vertex(glm::vec3(10.5f, -10.5f, 10.5f),  glm::vec2(1.0f, 0.0f)),
-		Vertex(glm::vec3(-10.5f, -10.5f, 10.5f),  glm::vec2(0.0f, 0.0f)),
-		Vertex(glm::vec3(-10.5f, -10.5f, -10.5f),  glm::vec2(0.0f, 1.0f)),
-
-		Vertex(glm::vec3(-10.5f, 10.5f, -10.5f),  glm::vec2(0.0f, 1.0f)),
-		Vertex(glm::vec3(10.5f, 10.5f, -10.5f),  glm::vec2(1.0f, 1.0f)),
-		Vertex(glm::vec3(10.5f, 10.5f, 10.5f),  glm::vec2(1.0f, 0.0f)),
-		Vertex(glm::vec3(10.5f, 10.5f, 10.5f),  glm::vec2(1.0f, 0.0f)),
-		Vertex(glm::vec3(-10.5f, 10.5f, 10.5f),  glm::vec2(0.0f, 0.0f)),
-		Vertex(glm::vec3(-10.5f, 10.5f, -10.5f),  glm::vec2(0.0f, 1.0f))
-	};
-	calcNormals(cube_vertices, 36);
-	glGenBuffers(1, &VBOcube);
-	glBindBuffer(GL_ARRAY_BUFFER, VBOcube);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertices), &cube_vertices, GL_STATIC_DRAW);
+	calcNormals(cube_indices, 36, cube_vertices, 24);
+	cube.GenBuffers(cube_indices, 36, cube_vertices, 24);
 }
 
-void calcNormals(Vertex* pVertices, unsigned int VertexCount)
+void calcNormals(const unsigned int* pIndices, unsigned int IndexCount, Vertex* pVertices, unsigned int VertexCount)
 {
-    for (unsigned int i = 0; i < VertexCount; i += 3)
+    for (unsigned int i = 0; i < IndexCount; i += 3)
     {
-        glm::vec3 v1 = pVertices[i + 1].pos - pVertices[i].pos;
-        glm::vec3 v2 = pVertices[i + 2].pos - pVertices[i].pos;
+        unsigned int Index0 = pIndices[i];
+        unsigned int Index1 = pIndices[i + 1];
+        unsigned int Index2 = pIndices[i + 2];
+        glm::vec3 v1 = pVertices[Index1].pos - pVertices[Index0].pos;
+        glm::vec3 v2 = pVertices[Index2].pos - pVertices[Index0].pos;
         glm::vec3 normal = glm::cross(v2, v1);
         normal = glm::normalize(normal);
-        pVertices[i].normal += normal;
-        pVertices[i + 1].normal += normal;
-        pVertices[i + 2].normal += normal;
+        pVertices[Index0].normal += normal;
+        pVertices[Index1].normal += normal;
+        pVertices[Index2].normal += normal;
     }
     for (unsigned int i = 0; i < VertexCount; i++)
         pVertices[i].normal = glm::normalize(pVertices[i].normal);
