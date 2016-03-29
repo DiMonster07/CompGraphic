@@ -1,6 +1,4 @@
 #include "camera.h"
-#include <iostream>
-#include <fstream>
 
 using namespace std;
 
@@ -16,6 +14,18 @@ void Camera::setCamera(glm::vec3 position, glm::vec3 target, glm::vec3 up)
     this->position = position;
     this->target = target;
     this->up = up;
+}
+
+void Camera::getUniforms(GLuint shaderId)
+{
+    this->dirLightColor = glGetUniformLocation(shaderId, "gDirLight.color");
+    this->dirLightIntensity = glGetUniformLocation(shaderId, "gDirLight.ambient_intensity");
+    this->dirLightDirection = glGetUniformLocation(shaderId, "gDirLight.direction");
+    this->dirLightDiffuseIntensity = glGetUniformLocation(shaderId, "gDirLight.diffuse_intensity");
+
+    this->EyeWorldPos = glGetUniformLocation(shaderId, "gEyeWorldPos");
+    this->MatSpecularIntensityLoc = glGetUniformLocation(shaderId, "gMatSpecularIntensity");
+    this->SpecularPowerLoc = glGetUniformLocation(shaderId, "gSpecularPower");
 }
 
 void Camera::lightRender()

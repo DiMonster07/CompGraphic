@@ -30,22 +30,13 @@ bool is_key_press[128];
 GLuint *vertexArrays;
 GLuint texture1;
 
-GLuint dirLightColor;
-GLuint dirLightIntensity;
-GLuint dirLightDirection;
-GLuint dirLightDiffuseIntensity;
-
-GLuint EyeWorldPos;
-GLuint MatSpecularIntensityLoc;
-GLuint SpecularPowerLoc;
-
 GLint attribArray;
 GLint gWorldLoc, mvpLoc;
 
 Object cube;
 
 Program ShaderProgram;
-GLuint VBOcube, VAOcube, IBOcube, VAOgrid, VBOgrid;
+GLuint VAOgrid, VBOgrid;
 
 Program CreateShaderProgram();
 void initCube();
@@ -113,16 +104,8 @@ int main(int argc, char** argv)
 
     //LIGHT
 
-    camera.set_light_param(glm::vec3(1.0f, 1.0f, 1.0f), 0.5f, glm::vec3(0.0f, 1.0f, 0.0f), 0.75f);
-
-	dirLightColor = glGetUniformLocation(ShaderProgram.programId, "gDirLight.color");
-    dirLightIntensity = glGetUniformLocation(ShaderProgram.programId, "gDirLight.ambient_intensity");
-    dirLightDirection = glGetUniformLocation(ShaderProgram.programId, "gDirLight.direction");
-    dirLightDiffuseIntensity = glGetUniformLocation(ShaderProgram.programId, "gDirLight.diffuse_intensity");
-
-    EyeWorldPos = glGetUniformLocation(ShaderProgram.programId, "gEyeWorldPos");
-    MatSpecularIntensityLoc = glGetUniformLocation(ShaderProgram.programId, "gMatSpecularIntensity");
-    SpecularPowerLoc = glGetUniformLocation(ShaderProgram.programId, "gSpecularPower");
+    camera.set_light_param(glm::vec3(1.0f, 1.0f, 1.0f), 0.5f, glm::vec3(0.0f, 0.0f, 1.0f), 0.75f);
+    camera.getUniforms(ShaderProgram.programId);
 
     /////
 
@@ -150,15 +133,15 @@ void Render()
 	glm::mat4 gWorld = camera.get_mat();
     glUniformMatrix4fv(gWorldLoc, 1, GL_FALSE, glm::value_ptr(gWorld));
 
-    glUniform3f(dirLightColor, camera.light.color.x, camera.light.color.y, camera.light.color.z);
-    glUniform1f(dirLightIntensity,  camera.light.ambient_intensity);
+    glUniform3f(camera.dirLightColor, camera.light.color.x, camera.light.color.y, camera.light.color.z);
+    glUniform1f(camera.dirLightIntensity,  camera.light.ambient_intensity);
     glm::vec3 direction = glm::normalize(camera.light.direction);
-    glUniform3f(dirLightDirection, camera.light.direction.x, camera.light.direction.y, camera.light.direction.z);
-    glUniform1f(dirLightDiffuseIntensity,  camera.light.diffuse_intensity);
+    glUniform3f(camera.dirLightDirection, camera.light.direction.x, camera.light.direction.y, camera.light.direction.z);
+    glUniform1f(camera.dirLightDiffuseIntensity,  camera.light.diffuse_intensity);
 
-    glUniform3f(EyeWorldPos, camera.position.x, camera.position.y, camera.position.z);
-    glUniform1f(MatSpecularIntensityLoc, 1.0f);
-    glUniform1f(SpecularPowerLoc, 64.0f);
+    glUniform3f(camera.EyeWorldPos, camera.position.x, camera.position.y, camera.position.z);
+    glUniform1f(camera.MatSpecularIntensityLoc, 1.0f);
+    glUniform1f(camera.SpecularPowerLoc, 64.0f);
 
 	glm::mat4 mvp = camera.get_mat();
 

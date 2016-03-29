@@ -1,7 +1,14 @@
 #pragma once
-#include <glm/glm.hpp>
+#include <iostream>
+#include <fstream>
+#include <GL/glew.h>
+#include <GL/freeglut.h>
 #include <GL/gl.h>
+#include <GL/glfw.h>
+#include <SOIL/SOIL.h>
+#include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #define KEY_W ('w')
 #define KEY_A ('a')
@@ -38,9 +45,17 @@ class Camera
 		void key_callback(bool is_key_press[128]);
 		void set_light_param(glm::vec3 color, float ambient_intensity, glm::vec3 direction, float diffuse_intensity);
 		void lightRender();
+		void getUniforms(GLuint shaderId);
 		glm::mat4 get_mat();
 		GLint width, hight;
 		GLfloat fovy, near_plane, far_plane, left, right_fur, bottom, top, pitch, yaw;
 		glm::vec3 position, up, target;
 		DirLight light;
+		GLuint dirLightColor;
+        GLuint dirLightIntensity;
+        GLuint dirLightDirection;
+        GLuint dirLightDiffuseIntensity;
+        GLuint EyeWorldPos;
+        GLuint MatSpecularIntensityLoc;
+        GLuint SpecularPowerLoc;
 };
