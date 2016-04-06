@@ -46,6 +46,9 @@
 		<Unit filename="mainFPS.cpp" />
 		<Unit filename="mat4.cpp" />
 		<Unit filename="mat4.h" />
+		<Unit filename="meta.h" />
+		<Unit filename="object.cpp" />
+		<Unit filename="object.h" />
 		<Unit filename="vec4.cpp" />
 		<Unit filename="vec4.h" />
 		<Extensions>

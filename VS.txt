@@ -13,7 +13,7 @@ out vec3 WorldPos;
 void main()
 {
     gl_Position = mvp * vec4(position, 1.0f);
-    TexCoord = vec2(texCoord.x, 1.0 - texCoord.y);
+    TexCoord = vec2(texCoord.x, texCoord.y);
     out_normal = (gWorld * vec4(normal, 0.0)).xyz;
     WorldPos = (gWorld * vec4(position, 1.0)).xyz;
 }

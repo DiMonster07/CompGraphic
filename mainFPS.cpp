@@ -28,26 +28,31 @@ char TextureName[] = "mine.png";
 bool is_key_press[128];
 
 GLuint *vertexArrays;
-GLuint texture1;
+GLuint texture1, howCellLoc;
 
 GLint attribArray;
 GLint gWorldLoc, mvpLoc;
 
 Object cube;
+Object sun;
 
 Program ShaderProgram;
 GLuint VAOgrid, VBOgrid;
 
 Program CreateShaderProgram();
 void initCube();
+void initSun();
 void Render();
 
 //GRID
 const int count_vertices = 806;
+glm::vec3 pointLight(0.0f, 45.0f, 0.0f);
 float grid_vertices[count_vertices * 3];
 void add_vertex(int i, float x, float y, float z);
 void gen_grid();
 void mInit();
+void press_keys_special(int Key, int x, int y);
+void up_keys_special(unsigned char key, int x, int y);
 void press_keys(unsigned char key, int x, int y);
 void up_keys(unsigned char key, int x, int y);
 void calcNormals(const unsigned int* pIndices, unsigned int IndexCount, Vertex* pVertices, unsigned int VertexCount);
@@ -77,15 +82,7 @@ int main(int argc, char** argv)
 	ShaderProgram = CreateShaderProgram();
 
     initCube();
-    glBindVertexArray(cube.VAO);
-
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-    glEnableVertexAttribArray(2);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)0);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const GLvoid*)12);
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const GLvoid*)20);
+    initSun();
 
 	glGenVertexArrays(1, &VAOgrid);
 	glBindVertexArray(VAOgrid);
@@ -101,11 +98,13 @@ int main(int argc, char** argv)
 
     mvpLoc = glGetUniformLocation(ShaderProgram.programId, "mvp");
 	gWorldLoc = glGetUniformLocation(ShaderProgram.programId, "gWorld");
+	camera.isProcedureLoc = glGetUniformLocation(ShaderProgram.programId, "isProcedure");
+    camera.howCellLoc = glGetUniformLocation(ShaderProgram.programId, "howCell");
 
     //LIGHT
 
-    camera.set_light_param(glm::vec3(1.0f, 1.0f, 1.0f), 0.5f, glm::vec3(0.0f, 0.0f, 1.0f), 0.75f);
-    camera.getUniforms(ShaderProgram.programId);
+    camera.set_light_param(glm::vec3(1.0f, 1.0f, 1.0f), 0.5f, pointLight, 0.75f);
+    camera.getUniformsLight(ShaderProgram.programId);
 
     /////
 
@@ -116,6 +115,7 @@ int main(int argc, char** argv)
 	glClearColor(0.1f, 0.1f, 0.1f, 0.1f);
 	glutKeyboardFunc(press_keys);
 	glutKeyboardUpFunc(up_keys);
+	glutSpecialFunc(press_keys_special);
 	glutMainLoop();
 	return 0;
 }
@@ -133,29 +133,69 @@ void Render()
 	glm::mat4 gWorld = camera.get_mat();
     glUniformMatrix4fv(gWorldLoc, 1, GL_FALSE, glm::value_ptr(gWorld));
 
-    glUniform3f(camera.dirLightColor, camera.light.color.x, camera.light.color.y, camera.light.color.z);
-    glUniform1f(camera.dirLightIntensity,  camera.light.ambient_intensity);
-    glm::vec3 direction = glm::normalize(camera.light.direction);
-    glUniform3f(camera.dirLightDirection, camera.light.direction.x, camera.light.direction.y, camera.light.direction.z);
-    glUniform1f(camera.dirLightDiffuseIntensity,  camera.light.diffuse_intensity);
-
-    glUniform3f(camera.EyeWorldPos, camera.position.x, camera.position.y, camera.position.z);
-    glUniform1f(camera.MatSpecularIntensityLoc, 1.0f);
-    glUniform1f(camera.SpecularPowerLoc, 64.0f);
+    camera.setUniformsLight();
+    glUniform1i(camera.howCellLoc, camera.howCell);
+    glUniform1i(camera.isProcedureLoc, camera.isProcedure);
 
 	glm::mat4 mvp = camera.get_mat();
 
     ////////////CUBE//////////////////////
 
 	glBindVertexArray(cube.VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, cube.VBO);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)0);
+    glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const GLvoid*)12);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const GLvoid*)20);
+    glEnableVertexAttribArray(2);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cube.IBO);
+
 	glm::mat4 model;
     mvp = mvp * model;
     glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp));
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
-    ///////////////////////////////////////
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(2);
+
+    /////////////SUN///////////////////////
+
+    glBindVertexArray(sun.VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, sun.VBO);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)0);
+    glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const GLvoid*)12);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const GLvoid*)20);
+    glEnableVertexAttribArray(2);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cube.IBO);
+
+	model= glm::translate(model, pointLight);
+    mvp = mvp * model;
+    glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp));
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(2);
+
+    /////////////GRID////////////////////////
 
     glBindVertexArray(VAOgrid);
+    mvp = camera.get_mat();
+    glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp));
     glDrawArrays(GL_LINES, 0, count_vertices);
 
 	glUseProgram(0);
@@ -165,8 +205,14 @@ void Render()
 
 void initCube()
 {
-	calcNormals(cube_indices, 36, cube_vertices, 24);
+	//calcNormals(cube_indices, 36, cube_vertices, 24);
 	cube.GenBuffers(cube_indices, 36, cube_vertices, 24);
+}
+
+void initSun()
+{
+    //calcNormals(sun_indices, 36, sun_vertices, 24);
+	sun.GenBuffers(sun_indices, 36, sun_vertices, 24);
 }
 
 void calcNormals(const unsigned int* pIndices, unsigned int IndexCount, Vertex* pVertices, unsigned int VertexCount)
@@ -206,6 +252,34 @@ void gen_grid()
 		add_vertex(j + 3, 200, 0, i);
 	}
 	add_vertex(j, 0, 0, 0);
+}
+
+void press_keys_special(int key, int x, int y)
+{
+    GLuint transSpeed = 5.0f;
+    if (glutGetModifiers() == GLUT_ACTIVE_CTRL)
+    {
+        switch(key)
+        {
+            case GLUT_KEY_UP:
+                        pointLight.z += transSpeed;
+                        break;
+            case GLUT_KEY_DOWN:
+                        pointLight.z -= transSpeed;
+                        break;
+            case GLUT_KEY_LEFT:
+                        pointLight.x += transSpeed;
+                        break;
+            case GLUT_KEY_RIGHT:
+                        pointLight.x -= transSpeed;
+                        break;
+        }
+    }
+    else
+    {
+        camera.key_callback_special(key);
+    }
+    glutPostRedisplay();
 }
 
 void press_keys(unsigned char key, int x, int y)

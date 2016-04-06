@@ -19,6 +19,25 @@ uniform sampler2D ourTexture;
 uniform vec3 gEyeWorldPos;
 uniform float gMatSpecularIntensity;
 uniform float gSpecularPower;
+uniform int howCell;
+uniform int isProcedure;
+
+uniform vec3 Color0 = vec3(0.5, 0.5, 0.5);
+uniform vec3 Color1 = vec3(0.1, 0.1, 0.1);
+
+vec3 tex_gen(vec2 coord)
+{
+        int w = int(coord.x * howCell);
+        int h = int(coord.y * howCell);
+        if ((w + h ) % 2 == 0)
+        {
+            return Color0;
+        }
+        else
+        {
+            return Color1;
+        }
+}
 
 void main()
 {
@@ -41,5 +60,6 @@ void main()
             SpecularColor = vec4(gDirLight.color, 1.0f) * gMatSpecularIntensity * SpecularFactor;
         }
     }
-	color = texture2D(ourTexture, TexCoord.st) * (AmbientColor + DiffuseColor + SpecularColor);
+    if (isProcedure == 1) {color = vec4(tex_gen(TexCoord), 1.0) * (AmbientColor + DiffuseColor + SpecularColor);}
+	else {color = texture2D(ourTexture, TexCoord.st) * (AmbientColor + DiffuseColor + SpecularColor);}
 }

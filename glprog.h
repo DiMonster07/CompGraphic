@@ -14,7 +14,6 @@ struct Matrix4f
     float m[4][4];
 };
 
-
 class Shader
 {
 public:
@@ -95,37 +94,3 @@ public:
 	}
 };
 
-class Buffer
-{
-public:
-	GLuint vao, vbo, via, first, count;
-	GLenum mode;
-	Buffer ()
-	{
-		vbo = vao = via = first = count = mode = 0;
-	}
-
-	void Init()
-	{
-		glGenVertexArrays(1, &vao);
-		glGenBuffers(1, &vbo);
-		glGenBuffers(1, &via);
-	}
-
-	void Draw(Program prog)
-	{
-		glBindVertexArray(vao);
-		glDrawArrays(mode, first, count);
-		glBindVertexArray(0);
-	}
-
-	void DrawElements(Program prog, GLint elem_cnt, float *vertex)
-	{
-		glBindVertexArray(vao);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, via);
-		glVertexPointer(3, GL_FLOAT, 0, vertex);
-		glDrawElements(mode, elem_cnt, GL_UNSIGNED_SHORT, 0);
-		glBindVertexArray(0);
-	}
-};

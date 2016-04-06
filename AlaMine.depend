@@ -55,10 +55,10 @@
 	<cmath>
 	"vec4.h"
 
-1459260760 source:/home/dmitrii/workspace/CompGraphic/camera.cpp
+1459478994 source:/home/dmitrii/workspace/CompGraphic/camera.cpp
 	"camera.h"
 
-1459260765 /home/dmitrii/workspace/CompGraphic/camera.h
+1459479428 /home/dmitrii/workspace/CompGraphic/camera.h
 	<iostream>
 	<fstream>
 	<GL/glew.h>
@@ -95,7 +95,7 @@
 	<cmath>
 	"vec4.h"
 
-1459238709 source:/home/dmitrii/workspace/CompGraphic/mainFPS.cpp
+1459479600 source:/home/dmitrii/workspace/CompGraphic/mainFPS.cpp
 	<iostream>
 	<fstream>
 	<GL/glew.h>
@@ -111,14 +111,14 @@
 	"object.h"
 	"meta.h"
 
-1459238709 /home/dmitrii/workspace/CompGraphic/glprog.h
+1459480091 /home/dmitrii/workspace/CompGraphic/glprog.h
 	<GL/glew.h>
 	<GL/freeglut.h>
 	<iostream>
 	<fstream>
 	<string.h>
 
-1459238709 /home/dmitrii/workspace/CompGraphic/object.h
+1459480247 /home/dmitrii/workspace/CompGraphic/object.h
 	<iostream>
 	<fstream>
 	<GL/glew.h>
@@ -129,10 +129,10 @@
 	<glm/gtc/matrix_transform.hpp>
 	<glm/gtc/type_ptr.hpp>
 
-1459238709 source:/home/dmitrii/workspace/CompGraphic/object.cpp
+1459440137 source:/home/dmitrii/workspace/CompGraphic/object.cpp
 	"object.h"
 
-1459238709 /home/dmitrii/workspace/CompGraphic/meta.h
+1459480673 /home/dmitrii/workspace/CompGraphic/meta.h
 	<GL/glew.h>
 	<GL/freeglut.h>
 	<GL/gl.h>

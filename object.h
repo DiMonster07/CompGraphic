@@ -22,6 +22,13 @@ struct Vertex
         this->tex = tex;
         this->normal = glm::vec3(0.0f, 0.0f, 0.0f);
     }
+
+    Vertex(glm::vec3 pos, glm::vec2 tex, glm::vec3 normal)
+    {
+        this->pos = pos;
+        this->tex = tex;
+        this->normal = normal;
+    }
 };
 
 class Object

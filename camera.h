@@ -24,7 +24,57 @@
 #define KEY_X ('x')
 #define KEY_C ('c')
 #define KEY_V ('v')
+#define KEY_B ('b')
+#define KEY_N ('n')
+#define KEY_B ('b')
+#define KEY_N ('n')
 
+#define MAX_POINT_LIGHTS 3
+
+
+struct BaseLight
+{
+    glm::vec3 color;
+    float ambientIntensity;
+    float diffuseIntensity;
+
+    BaseLight()
+    {
+        color = glm::vec3(0.0f, 0.0f, 0.0f);
+        ambientIntensity = 0.0f;
+        diffuseIntensity = 0.0f;
+    }
+};
+
+struct DirectionalLight : public BaseLight
+{
+    glm::vec3 direction;
+
+    DirectionalLight()
+    {
+        direction = glm::vec3(0.0f, 0.0f, 0.0f);
+    }
+};
+
+struct PointLight : public BaseLight
+{
+    glm::vec3 position;
+
+    struct
+    {
+        float constant;
+        float linear;
+        float exp;
+    } attenuation;
+
+    PointLight()
+    {
+        position = glm::vec3(0.0f, 0.0f, 0.0f);
+        attenuation.constant = 1.0f;
+        attenuation.linear = 0.0f;
+        attenuation.exp = 0.0f;
+    }
+};
 
 struct DirLight
 {
@@ -43,9 +93,11 @@ class Camera
 		void zoom(float value);
 		void rotate();
 		void key_callback(bool is_key_press[128]);
+		void key_callback_special(unsigned char key);
 		void set_light_param(glm::vec3 color, float ambient_intensity, glm::vec3 direction, float diffuse_intensity);
 		void lightRender();
-		void getUniforms(GLuint shaderId);
+		void getUniformsLight(GLuint shaderId);
+		void setUniformsLight();
 		glm::mat4 get_mat();
 		GLint width, hight;
 		GLfloat fovy, near_plane, far_plane, left, right_fur, bottom, top, pitch, yaw;
@@ -58,4 +110,21 @@ class Camera
         GLuint EyeWorldPos;
         GLuint MatSpecularIntensityLoc;
         GLuint SpecularPowerLoc;
+        GLuint numPointLightsLocation;
+        GLuint howCellLoc;
+        int howCell;
+        GLuint isProcedureLoc;
+        int isProcedure;
+
+        struct {
+            GLuint color;
+            GLuint ambientIntensity;
+            GLuint diffuseIntensity;
+            GLuint position;
+            struct{
+                GLuint constant;
+                GLuint linear;
+                GLuint exp;
+            } Atten;
+        } pointLightsLocation[MAX_POINT_LIGHTS];
 };
